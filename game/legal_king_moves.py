@@ -66,8 +66,9 @@ def kingMoves(state: State) -> list[Move]:
             file_diff = abs((from_sq_idx % 8) - (to_sq_idx % 8))
             if file_diff <= 1 and not get_bit(own_occ, to_sq_idx):
                 is_capture = get_bit(opp_occ, to_sq_idx)
+                move = Move(color, PieceType.KING, from_sq, Square(to_sq_idx), is_capture=is_capture)
                 copy_state = copy.deepcopy(state)
-                copy_state.move_piece(PieceType.KING, from_sq, to_sq_idx)
+                copy_state.move_piece(move)
                 if not is_square_attacked(copy_state, Square(to_sq_idx)):
                     moves.append(Move(color, PieceType.KING, from_sq, Square(to_sq_idx), is_capture=is_capture))
 
@@ -77,8 +78,9 @@ def kingMoves(state: State) -> list[Move]:
     return moves
 
 
-
 if __name__ == '__main__':
     state = State()
-    state.move_piece(PieceType.PAWN, Square.E2, Square.E4)
-    print(kingMoves(state))
+
+
+    move = Move(Color.WHITE, pieceType.PAWN, Square.E2, Square.E4)
+    state.move_piece(move)

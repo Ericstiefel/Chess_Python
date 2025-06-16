@@ -7,17 +7,23 @@ from legal_king_moves import castleMoves, is_in_check
 
 
 def make_move(state: State, move: Move) -> bool:
-    if state.piece_on_square(move.from_sq) == PieceType.PAWN:
+    if move.piece_type == PieceType.PAWN or move.is_capture:
         state.fifty_move = 0
 
     if move.is_castle:
         king_moves = castleMoves(state)
 
+        print('Castling')
+
+        state.printBoard()
+        print([move_ex.notation() for move_ex in pawn_moves])
+
         if move not in king_moves:
             return False
-        
-        state.fifty_move = 0        
-        state.castle(move.to_sq)
+
+        state.castle(move)
+
+        state.fifty_move = 0
 
         return True
     
@@ -30,21 +36,25 @@ def make_move(state: State, move: Move) -> bool:
 
         if move not in pawn_moves:
             state.printBoard()
+            print('Move not in pawn_moves')
             print([move_ex.notation() for move_ex in pawn_moves])
             return False
-        
-        state.fifty_move = 0
-        state.promote(move.from_sq, move.to_sq, move.promotion_type)
+
+        state.promote(move)
         return True
+
     if move.is_en_passant:
         pawn_moves = pawnMoves(state)
+        print('En Passant')
         state.printBoard()
         print([move_ex.notation() for move_ex in pawn_moves])
         if move not in pawn_moves:
             return False
-        
-        state.fifty_move = 0
-        state.en_passant(move.from_sq, move.to_sq)
+
+        state.en_passant(move)
+
+        state.printBoard()
+
         return True
     
     moves = legal_moves(state)
@@ -54,10 +64,10 @@ def make_move(state: State, move: Move) -> bool:
     
     if move.is_capture:
         state.fifty_move = 0
-        state.capture(move.piece_type, move.from_sq, move.to_sq)
+        state.capture(move)
         return True
     
-    state.move_piece(move.piece_type, move.from_sq, move.to_sq)
+    state.move_piece(move)
     
     return True 
 
@@ -84,18 +94,31 @@ def turn(state: State, move: Move):
 
         state.moves.append((move, captured_piece, old_castling, old_en_passant, old_fifty))
         return True
-    else:
-        
-        state.printBoard()
-        print(f'Invalid Move : {move.notation()}')
-        print(f'Move From_sq: {move.from_sq}, Move To_sq: {move.to_sq}, Promotion: {move.promotion_type}, is_capture: {move.is_capture}')
+    else:  
         return False
 
 
 if __name__ == '__main__':
     state = State()
-    move = Move(state.toMove, PieceType.PAWN, Square.E2, Square.E4)
-    turn(state, move)
-    state.printBoard()
-    state.unmake_move()
-    state.printBoard()
+    state = State()
+    moves = [
+    Move(Color.WHITE, PieceType.PAWN, Square.A2, Square.A4),
+    Move(Color.BLACK, PieceType.PAWN, Square.H7, Square.H6),  # Waiting move
+    Move(Color.WHITE, PieceType.PAWN, Square.A4, Square.A5),
+    Move(Color.BLACK, PieceType.PAWN, Square.H6, Square.H5),  # Waiting move
+    Move(Color.WHITE, PieceType.PAWN, Square.A5, Square.A6),
+    Move(Color.BLACK, PieceType.KNIGHT, Square.G8, Square.H6),  # Just getting out of the way
+    Move(Color.WHITE, PieceType.ROOK, Square.A1, Square.A3),
+    Move(Color.BLACK, PieceType.KNIGHT, Square.H6, Square.G8),  # Waiting
+    Move(Color.WHITE, PieceType.ROOK, Square.A3, Square.F3),
+    Move(Color.BLACK, PieceType.KNIGHT, Square.G8, Square.H6),
+    Move(Color.WHITE, PieceType.PAWN, Square.A6, Square.B7),
+    Move(Color.BLACK, PieceType.KNIGHT, Square.B8, Square.C6),
+    Move(Color.WHITE, PieceType.PAWN, Square.B7, Square.B8, promotion_type=PieceType.QUEEN),
+]
+
+    for move in moves:
+        state.printBoard()
+        print('Legal Moves: ', [legal.notation() for legal in legal_moves(state)])
+        print('Move Chosen', move.notation())
+        turn(state, move)

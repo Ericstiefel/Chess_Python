@@ -111,6 +111,7 @@ class State:
                 if self.boards[color][piece_type] & mask:
                     return piece_type
         return None
+
     def color_on_square(self, sq: int) -> Color | None:
         for color in (Color.WHITE, Color.BLACK):
             for piece in range(6):  # 0 to 5 for PieceType
@@ -119,34 +120,35 @@ class State:
         return None
 
     
-    def move_piece(self, piece: PieceType, from_sq: Square, to_sq: Square):
-        u_bb = self.boards[self.toMove][piece]
+    def move_piece(self, move: Move):
+        u_bb = self.boards[self.toMove][move.piece_type]
 
-        u_bb = clear_bit(u_bb, from_sq)
+        u_bb = clear_bit(u_bb, move.from_sq)
 
-        u_bb = set_bit(u_bb, to_sq)
+        u_bb = set_bit(u_bb, move.to_sq)
 
-        self.boards[self.toMove][piece] = u_bb        
+        self.boards[self.toMove][move.piece_type] = u_bb        
     
-    def capture(self, piece: PieceType, from_sq: Square, to_sq: Square) -> None:
+    def capture(self, move: Move) -> None:
         curr_player = self.toMove 
 
         # Handle capture
         for piece_board_idx in range(6):
             op_bb = self.boards[curr_player ^ 1][piece_board_idx]
-            if get_bit(op_bb, to_sq):
-                self.boards[curr_player ^ 1][piece_board_idx] = clear_bit(op_bb, to_sq)
+            if get_bit(op_bb, move.to_sq):
+                self.boards[curr_player ^ 1][piece_board_idx] = clear_bit(op_bb, move.to_sq)
                 break
 
         # Move piece
-        self.boards[curr_player][piece] = clear_bit(self.boards[curr_player][piece], from_sq)
-        self.boards[curr_player][piece] = set_bit(self.boards[curr_player][piece], to_sq)
+        self.boards[curr_player][move.piece_type] = clear_bit(self.boards[curr_player][move.piece_type], move.from_sq)
+        self.boards[curr_player][move.piece_type] = set_bit(self.boards[curr_player][move.piece_type], move.to_sq)
 
     
-    def castle(self, to_sq: Square) -> None:
+    def castle(self, move: Move) -> None:
         color = self.toMove
         k_b = self.boards[color][PieceType.KING]
         r_b = self.boards[color][PieceType.ROOK]
+        to_sq = move.to_sq
 
         if color == Color.WHITE:
             # King always starts at E1 (4)
@@ -169,22 +171,22 @@ class State:
         self.boards[color][PieceType.ROOK] = r_b
 
 
-    def promote(self, from_sq: Square, to_sq: Square, promotion_piece: PieceType):
+    def promote(self, move: Move):
 
         for pt in range(6):
-            if get_bit(self.boards[self.toMove ^ 1][pt], to_sq):
-                self.boards[self.toMove ^ 1][pt] = clear_bit(self.boards[self.toMove ^ 1][pt], to_sq)
+            if get_bit(self.boards[self.toMove ^ 1][pt], move.to_sq):
+                self.boards[self.toMove ^ 1][pt] = clear_bit(self.boards[self.toMove ^ 1][pt], move.to_sq)
                 break
 
-        self.boards[self.toMove][PieceType.PAWN] = clear_bit(self.boards[self.toMove][PieceType.PAWN], from_sq)
-        self.boards[self.toMove][promotion_piece] = set_bit(self.boards[self.toMove][promotion_piece], to_sq)
+        self.boards[self.toMove][PieceType.PAWN] = clear_bit(self.boards[self.toMove][PieceType.PAWN], move.from_sq)
+        self.boards[self.toMove][move.promotion_type] = set_bit(self.boards[self.toMove][move.promotion_type], move.to_sq)
 
 
-    def en_passant(self, from_sq: Square, to_sq: Square):
+    def en_passant(self, move: Move):
         color = self.toMove
         opp_color = color ^ 1
 
-        self.boards[color][PieceType.PAWN] = set_bit(clear_bit(self.boards[color][PieceType.PAWN], from_sq), to_sq)
+        self.boards[color][PieceType.PAWN] = set_bit(clear_bit(self.boards[color][PieceType.PAWN], move.from_sq), move.to_sq)
 
         if color == Color.WHITE:
             captured_sq = to_sq - 8
@@ -244,23 +246,6 @@ class State:
 
         if move.is_capture and captured_piece is not None and not move.is_en_passant:
             self.boards[opp_color][captured_piece] = set_bit(self.boards[opp_color][captured_piece], to_sq)
-
-
-    def save_state(self):
-        return {
-            "boards": [piece_map.copy() for piece_map in self.boards],
-            "toMove": self.toMove,
-            "castling": self.castling,
-            "en_passant": self.en_passant,
-            "fifty_move": self.fifty_move
-        }
-
-    def load_state(self, saved):
-        self.boards = [piece_map.copy() for piece_map in saved["boards"]]
-        self.toMove = saved["toMove"]
-        self.castling = saved["castling"]
-        self.en_passant = saved["en_passant"]
-        self.fifty_move = saved["fifty_move"]
 
 
 

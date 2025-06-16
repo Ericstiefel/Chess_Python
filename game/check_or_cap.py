@@ -46,15 +46,21 @@ def annotate_moves_with_check_and_capture(state: State, moves: list[Move]):
         # Append to state.moves BEFORE making the move
         state.moves.append((move, captured_piece, old_castling, old_en_passant, old_fifty))
 
-        # Apply move
-        state.move_piece(move.piece_type, move.from_sq, move.to_sq)
-
+        if move.is_capture and move.promotion_type == PieceType.PAWN:
+            if move.is_en_passant:
+                state.en_passant()
+            else:
+                state.capture(move)
         
+        elif move.is_castle:
+            state.castle(move)
 
-        # Detect check
-        if is_check(state, move):
-            move.is_check = True
-     
+        elif move.promotion_type != PieceType.PAWN:
+            state.promote(move)
+
+        else:
+            state.move_piece(move)
+
         state.unmake_move()
 
         annotated_moves.append(move)

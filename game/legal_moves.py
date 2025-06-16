@@ -111,8 +111,4 @@ def king(state: State) -> list[Move]:
 
 
 if __name__ == '__main__':
-    state = State()
-    state.move_piece(PieceType.PAWN, Square.E2, Square.E4)
-    moves = king(state)
-    for move in moves:
-        print(move.notation())
+    pass
