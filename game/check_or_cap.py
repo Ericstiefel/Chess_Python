@@ -1,0 +1,61 @@
+from utils import is_square_attacked
+from constants import Square, Color, PieceType
+from bitboard import State
+from move import Move
+from bit_ops import get_bit, lsb_index
+
+def is_capture(state: State, move: Move) -> bool:
+    """
+    Checks if the given move is a capture.
+    """
+    # 1. En passant capture
+    if move.is_en_passant:
+        return True
+
+    # 2. Normal capture (destination square occupied by opponent's piece)
+    opponent_occupied_bb = state.get_occupied_by_color(state.toMove ^ 1)
+    return get_bit(opponent_occupied_bb, move.to_sq.value)
+
+def is_check(state: State, move: Move) -> bool:
+
+    state.toMove ^= 1
+
+    king_sq = lsb_index(state.boards[state.toMove][PieceType.KING])
+    in_check = is_square_attacked(state, Square(king_sq))
+    state.toMove ^= 1
+    return in_check
+
+def annotate_moves_with_check_and_capture(state: State, moves: list[Move]):
+    annotated_moves = []
+    for move in moves:
+        target_piece = state.piece_on_square(move.to_sq)
+        move.is_capture = target_piece is not None or move.is_en_passant
+
+        # Save necessary undo info before making the move
+        old_castling = state.castling
+        old_en_passant = state.en_passant
+        old_fifty = state.fifty_move
+        captured_piece = None
+        if move.is_capture:
+            if move.is_en_passant:
+                captured_sq = move.to_sq - 8 if move.color == Color.WHITE else move.to_sq + 8
+                captured_piece = state.piece_on_square(captured_sq)
+            else:
+                captured_piece = state.piece_on_square(move.to_sq)
+
+        # Append to state.moves BEFORE making the move
+        state.moves.append((move, captured_piece, old_castling, old_en_passant, old_fifty))
+
+        # Apply move
+        state.move_piece(move.piece_type, move.from_sq, move.to_sq)
+
+        
+
+        # Detect check
+        if is_check(state, move):
+            move.is_check = True
+     
+        state.unmake_move()
+
+        annotated_moves.append(move)
+    return annotated_moves
