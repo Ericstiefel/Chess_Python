@@ -14,7 +14,7 @@ class State:
 
         self.moves: list[tuple] = []
 
-        self.castling: int = 0 # Each of the last 4 bits represent if the side is capable of castling to either side
+        self.castling: int = 0b1111 # Each of the last 4 bits represent if the side is capable of castling to either side
 
         self.en_passant: Square = Square.NO_SQUARE # Pawns may only capture to one square in the case of en passant
 
@@ -121,6 +121,10 @@ class State:
 
     
     def move_piece(self, move: Move):
+        old_castling = self.castling
+        old_en_passant = self.en_passant
+        old_fifty = self.fifty_move
+        self.moves.append((move, None, old_castling, old_en_passant, old_fifty))
         u_bb = self.boards[self.toMove][move.piece_type]
 
         u_bb = clear_bit(u_bb, move.from_sq)
@@ -130,6 +134,18 @@ class State:
         self.boards[self.toMove][move.piece_type] = u_bb        
     
     def capture(self, move: Move) -> None:
+        old_castling = self.castling
+        old_en_passant = self.en_passant
+        old_fifty = self.fifty_move
+        captured_piece = None
+        if move.is_en_passant:
+            captured_sq = move.to_sq - 8 if move.color == Color.WHITE else move.to_sq + 8
+            captured_piece = self.piece_on_square(captured_sq)
+        else:
+            captured_piece = self.piece_on_square(move.to_sq)
+
+        self.moves.append((move, captured_piece, old_castling, old_en_passant, old_fifty))
+
         curr_player = self.toMove 
 
         # Handle capture
@@ -145,33 +161,62 @@ class State:
 
     
     def castle(self, move: Move) -> None:
+        old_castling = self.castling
+        old_en_passant = self.en_passant
+        old_fifty = self.fifty_move
+        captured_piece = None
+        if move.is_capture:
+            if move.is_en_passant:
+                captured_sq = move.to_sq - 8 if move.color == Color.WHITE else move.to_sq + 8
+                captured_piece = self.piece_on_square(captured_sq)
+            else:
+                captured_piece = self.piece_on_square(move.to_sq)
+
+        self.moves.append((move, captured_piece, old_castling, old_en_passant, old_fifty))
+
         color = self.toMove
         k_b = self.boards[color][PieceType.KING]
         r_b = self.boards[color][PieceType.ROOK]
         to_sq = move.to_sq
 
         if color == Color.WHITE:
-            # King always starts at E1 (4)
             if to_sq == Square.G1:  # Kingside
                 k_b = set_bit(clear_bit(k_b, Square.E1), Square.G1)
                 r_b = set_bit(clear_bit(r_b, Square.H1), Square.F1)
+                self.castling &= ~0b0001  # Clear White kingside
             elif to_sq == Square.C1:  # Queenside
                 k_b = set_bit(clear_bit(k_b, Square.E1), Square.C1)
                 r_b = set_bit(clear_bit(r_b, Square.A1), Square.D1)
+                self.castling &= ~0b0010  # Clear White queenside
         else:
-            # King always starts at E8 (60)
             if to_sq == Square.G8:  # Kingside
                 k_b = set_bit(clear_bit(k_b, Square.E8), Square.G8)
                 r_b = set_bit(clear_bit(r_b, Square.H8), Square.F8)
+                self.castling &= ~0b0100  # Clear Black kingside
             elif to_sq == Square.C8:  # Queenside
                 k_b = set_bit(clear_bit(k_b, Square.E8), Square.C8)
                 r_b = set_bit(clear_bit(r_b, Square.A8), Square.D8)
+                self.castling &= ~0b1000  # Clear Black queenside
 
         self.boards[color][PieceType.KING] = k_b
         self.boards[color][PieceType.ROOK] = r_b
 
 
+
     def promote(self, move: Move):
+        old_castling = self.castling
+        old_en_passant = self.en_passant
+        old_fifty = self.fifty_move
+        captured_piece = None
+        if move.is_capture:
+            if move.is_en_passant:
+                captured_sq = move.to_sq - 8 if move.color == Color.WHITE else move.to_sq + 8
+                captured_piece = self.piece_on_square(captured_sq)
+            else:
+                captured_piece = self.piece_on_square(move.to_sq)
+
+        self.moves.append((move, captured_piece, old_castling, old_en_passant, old_fifty))
+
 
         for pt in range(6):
             if get_bit(self.boards[self.toMove ^ 1][pt], move.to_sq):
@@ -183,6 +228,19 @@ class State:
 
 
     def en_passant(self, move: Move):
+        old_castling = self.castling
+        old_en_passant = self.en_passant
+        old_fifty = self.fifty_move
+        captured_piece = None
+        if move.is_capture:
+            if move.is_en_passant:
+                captured_sq = move.to_sq - 8 if move.color == Color.WHITE else move.to_sq + 8
+                captured_piece = self.piece_on_square(captured_sq)
+            else:
+                captured_piece = self.piece_on_square(move.to_sq)
+
+        self.moves.append((move, captured_piece, old_castling, old_en_passant, old_fifty))
+
         color = self.toMove
         opp_color = color ^ 1
 

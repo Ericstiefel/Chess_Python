@@ -48,7 +48,7 @@ def castleMoves(state: State) -> list[Move]:
 
     return moves
 
-def kingMoves(state: State) -> list[Move]:
+def kingMoves(state: State, attacker_ct: int) -> list[Move]:
     color = state.toMove
     moves = []
 
@@ -67,13 +67,14 @@ def kingMoves(state: State) -> list[Move]:
             if file_diff <= 1 and not get_bit(own_occ, to_sq_idx):
                 is_capture = get_bit(opp_occ, to_sq_idx)
                 move = Move(color, PieceType.KING, from_sq, Square(to_sq_idx), is_capture=is_capture)
-                copy_state = copy.deepcopy(state)
-                copy_state.move_piece(move)
-                if not is_square_attacked(copy_state, Square(to_sq_idx)):
+                state.move_piece(move)
+                if not is_square_attacked(state, Square(to_sq_idx)):
                     moves.append(Move(color, PieceType.KING, from_sq, Square(to_sq_idx), is_capture=is_capture))
-
-    # Add castling moves
-    moves.extend(castleMoves(state))
+                state.unmake_move()
+    if attacker_ct == 0:
+        # Add castling moves
+        moves.extend(castleMoves(state))
+    
 
     return moves
 

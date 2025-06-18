@@ -3,29 +3,23 @@ from constants import Color, PieceType, Square
 from bit_ops import *
 from move import Move
 from legal_moves import *
-from legal_king_moves import castleMoves, is_in_check
+from legal_king_moves import castleMoves
 
 
 def make_move(state: State, move: Move) -> bool:
+
+    state.fifty_move += 1
     if move.piece_type == PieceType.PAWN or move.is_capture:
         state.fifty_move = 0
 
     if move.is_castle:
-        king_moves = castleMoves(state)
-
-        print('Castling')
-
-        state.printBoard()
-        print([move_ex.notation() for move_ex in pawn_moves])
-
-        if move not in king_moves:
-            return False
 
         state.castle(move)
 
         state.fifty_move = 0
 
         return True
+
     
     opp_tot_bb = state.get_occupied_by_color(state.toMove ^ 1)
 
@@ -35,9 +29,7 @@ def make_move(state: State, move: Move) -> bool:
         pawn_moves = pawnMoves(state)
 
         if move not in pawn_moves:
-            state.printBoard()
-            print('Move not in pawn_moves')
-            print([move_ex.notation() for move_ex in pawn_moves])
+
             return False
 
         state.promote(move)
@@ -45,21 +37,17 @@ def make_move(state: State, move: Move) -> bool:
 
     if move.is_en_passant:
         pawn_moves = pawnMoves(state)
-        print('En Passant')
-        state.printBoard()
-        print([move_ex.notation() for move_ex in pawn_moves])
         if move not in pawn_moves:
             return False
 
         state.en_passant(move)
 
-        state.printBoard()
-
-        return True
+        return True    
     
     moves = legal_moves(state)
+
+    
     if move not in moves:
-        print([move_ex.notation() for move_ex in moves])
         return False
     
     if move.is_capture:
@@ -72,34 +60,31 @@ def make_move(state: State, move: Move) -> bool:
     return True 
 
 def turn(state: State, move: Move):
-    # Save current state before making the move
-    old_castling = state.castling
-    old_en_passant = state.en_passant
-    old_fifty = state.fifty_move
-
-    # Determine captured piece (only needed if it's a capture or en passant)
-    captured_piece = None
-    if move.is_capture:
-        if move.is_en_passant:
-            captured_sq = move.to_sq - 8 if move.color == Color.WHITE else move.to_sq + 8
-            captured_piece = state.piece_on_square(captured_sq)
-        else:
-            captured_piece = state.piece_on_square(move.to_sq)
 
     if make_move(state, move):
+        if move.piece_type == PieceType.KING:
+            if move.color == Color.WHITE:
+                state.castling &= ~0b0011 
+            else:
+                state.castling &= ~0b1100 
+        elif move.piece_type == PieceType.ROOK:
+            if move.color == Color.WHITE:
+                if move.from_sq == Square.H1:
+                    state.castling &= ~0b0001  
+                elif move.from_sq == Square.A1:
+                    state.castling &= ~0b0010 
+            else:
+                if move.from_sq == Square.H8:
+                    state.castling &= ~0b0100 
+                elif move.from_sq == Square.A8:
+                    state.castling &= ~0b1000  
         state.toMove ^= 1
-
-        if is_in_check(state):
-            move.is_check = True
-
-        state.moves.append((move, captured_piece, old_castling, old_en_passant, old_fifty))
         return True
     else:  
         return False
 
 
 if __name__ == '__main__':
-    state = State()
     state = State()
     moves = [
     Move(Color.WHITE, PieceType.PAWN, Square.A2, Square.A4),

@@ -10,7 +10,7 @@ class Move:
                  promotion_type: PieceType = PieceType.PAWN, 
                  is_castle: bool = False,
                  is_check: bool = False,
-                 is_en_passant: bool = False,
+                 is_en_passant: bool = False
                 ):
         self.color = color
         self.piece_type = piece 
@@ -49,6 +49,9 @@ class Move:
         
 
     def notation(self) -> str:
+
+        # No Checkmate on purpose (too costly to calculate before looking at opponents options)
+
         from_square_name = SQUARE_NAMES[self.from_sq]
         to_square_name = SQUARE_NAMES[self.to_sq]
 
@@ -64,9 +67,9 @@ class Move:
         # --- Castling ---
         if self.is_castle:
             if self.to_sq == Square.G1 or self.to_sq == Square.G8: 
-                return "O-O" + ("#" if self.is_mate else ("+" if self.is_check else ""))
+                return "O-O" + ("+" if self.is_check else "")
             elif self.to_sq == Square.C1 or self.to_sq == Square.C8: 
-                return "O-O-O" + ("#" if self.is_mate else ("+" if self.is_check else ""))
+                return "O-O-O" + ("+" if self.is_check else "")
             
         result = piece_char
 
@@ -82,9 +85,7 @@ class Move:
         if self.promotion_type != PieceType.PAWN: 
             result += '=' + PIECE_SYMBOLS[self.color][self.promotion_type] 
 
-        # --- Check / Checkmate ---
-        # if self.is_mate:
-        #     result += '#'
+        # --- Check ---
         if self.is_check:
             result += '+'
 

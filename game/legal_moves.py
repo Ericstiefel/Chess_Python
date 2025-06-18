@@ -6,21 +6,24 @@ from move import Move
 from bit_ops import *
 from legal_king_moves import kingMoves
 from check_or_cap import is_check, is_capture, annotate_moves_with_check_and_capture
+import time
 
 
 def legal_moves(state: State) -> list[Move]:
+    
     total_moves: list[Move] = []
 
     king_loc = lsb_index(state.boards[state.toMove][PieceType.KING])
+    
+    
     attackers_bb = attackers_to_square(state, Square(king_loc))
+    
 
     attackers_count = popcount(attackers_bb)  
     in_check = attackers_count > 0
-
-    king_moves = annotate_moves_with_check_and_capture(state, kingMoves(state))
+    king_moves = annotate_moves_with_check_and_capture(state, kingMoves(state, attackers_count))
     # Always allow legal king moves
     for move in king_moves:
-        if not is_square_attacked(state, Square(move.to_sq)): # Castling already handled in possible_moves.kingMoves
             total_moves.append(move)
 
     if attackers_count == 2:
@@ -40,24 +43,27 @@ def legal_moves(state: State) -> list[Move]:
         # If not in check, all squares are potentially valid targets.
         valid_targets = 0xFFFFFFFFFFFFFFFF
 
-    # Go through all move generators for current color
-    for piece, gen in zip(range(6), [pawnMoves, knightMoves, bishopMoves, rookMoves, queenMoves]):
-        moves = annotate_moves_with_check_and_capture(state, gen(state))
-        for move in moves:
-            
-            piece_pinned: bool = pinned(state, move.from_sq, king_loc)
-            square_bit = 1 << move.to_sq
+    gen_funcs = [pawnMoves, knightMoves, bishopMoves, rookMoves, queenMoves]
 
-            if in_check:
-                if ((square_bit & valid_targets) != 0) and not piece_pinned: 
-                    total_moves.append(move)
-                continue
-            if piece_pinned:
-                if is_along_ray(king_loc, move.from_sq, move.to_sq):
-                    total_moves.append(move)
-                continue  # Pinned piece moving illegally
-            if ((1 << move.to_sq) & valid_targets):
+    moves = [move 
+         for gen_func in gen_funcs 
+         for move in annotate_moves_with_check_and_capture(state, gen_func(state))]
+
+    for move in moves:
+        
+        piece_pinned: bool = pinned(state, move.from_sq, king_loc)
+        square_bit = 1 << move.to_sq
+
+        if in_check:
+            if ((square_bit & valid_targets) != 0) and not piece_pinned: 
                 total_moves.append(move)
+            continue
+        if piece_pinned:
+            if is_along_ray(king_loc, move.from_sq, move.to_sq):
+                total_moves.append(move)
+            continue  # Pinned piece moving illegally
+        if ((1 << move.to_sq) & valid_targets):
+            total_moves.append(move)
 
     return total_moves
 
@@ -111,4 +117,16 @@ def king(state: State) -> list[Move]:
 
 
 if __name__ == '__main__':
-    pass
+    state = State()
+    
+    for _ in range(1000):
+        legal_moves(state)
+
+    start = time.time()
+
+    for _ in range(10000):
+        legal_moves(state)
+    end = time.time()
+
+    print('Avg Time Elapsed: ', (end - start) / 10000)
+
