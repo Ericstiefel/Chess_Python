@@ -6,11 +6,9 @@ from bit_ops import *
 import sys
 
 def is_capture(state: State, move: Move) -> bool:
-    # 1. En passant capture
     if move.is_en_passant:
         return True
 
-    # 2. Normal capture (destination square occupied by opponent's piece)
     opponent_occupied_bb = state.get_occupied_by_color(state.toMove ^ 1)
     return get_bit(opponent_occupied_bb, move.to_sq.value)
 

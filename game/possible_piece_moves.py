@@ -74,10 +74,6 @@ def pawnMoves(state: State) -> list[Move]:
 
 
 def knightMoves(state: State) -> list[Move]:
-    """
-    Generates all legal knight moves for the current player.
-    Knights can jump over pieces and move in an L-shape.
-    """
     color: Color = state.toMove
     moves = []
 
@@ -166,10 +162,6 @@ def bishopMoves(state: State) -> list[Move]:
 
 
 def rookMoves(state: State) -> list[Move]:
-    """
-    Generates all legal rook moves for the current player.
-    Rooks move in straight lines horizontally and vertically until blocked.
-    """
     color: Color = state.toMove
     moves = []
 
@@ -213,10 +205,7 @@ def rookMoves(state: State) -> list[Move]:
 
 
 def queenMoves(state: State) -> list[Move]:
-    """
-    Generates all legal queen moves for the current player.
-    The queen moves in all 8 directions (like rook + bishop) until blocked.
-    """
+
     color: Color = state.toMove
     moves = []
 

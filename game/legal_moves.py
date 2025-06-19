@@ -25,7 +25,7 @@ def legal_moves(state: State) -> list[Move]:
             total_moves.append(move)
 
     if attackers_count == 2:
-        return total_moves  # Only king, non castling moves allowed
+        return total_moves  
 
     if attackers_count == 1:
         # If in single check, pieces can only move to capture the checker or block its path.
