@@ -19,13 +19,6 @@ def make_move(state: State, move: Move) -> bool:
         state.promote(move)
         return True
 
-    if move.is_castle:
-
-        state.castle(move)
-        state.fifty_move = 0
-
-        return True
-
     
     opp_tot_bb = state.get_occupied_by_color(state.toMove ^ 1)
 
@@ -37,6 +30,13 @@ def make_move(state: State, move: Move) -> bool:
     
     if move not in moves:
         return False
+
+    if move.is_castle:
+
+        state.castle(move)
+        state.fifty_move = 0
+
+        return True
     
     if move.is_capture:
         if move.is_en_passant:
