@@ -1,4 +1,4 @@
-This repo consists of a fully functioning chess board in Python (No UI), implemented through the lens of bitboards, using the 64 slots of a 64 bit integer as squares, to reduce memory storage per board down fromm 64 to 12 integers (6 pieces each side). 
+This repo consists of a fully functioning chess board in Python (No UI), implemented through the lens of bitboards, using the 64 slots of a 64 bit integer as squares, to reduce memory storage per board down from 64 to 12 integers (6 pieces of each color). 
 Additionally the speed of bit operations allows this approach to reduce latency in addition to memory, for the price of *some* complexity. For further speed, this will be converted to C++ and improved with CUDA kernels,
 provided an available GPU. Although not included here, the entire project consists of training a chess bot through RL that will hopefully rival some SOTA models. The kernels for both training and live playing will be
 implemented there in addition to the base CPU bot, so if you're interested, check out my other repo. If not, feel free to use the code here!
