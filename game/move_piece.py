@@ -3,7 +3,6 @@ from constants import Color, PieceType, Square
 from bit_ops import *
 from move import Move
 from legal_moves import *
-from legal_king_moves import castleMoves
 
 
 def make_move(state: State, move: Move) -> bool:

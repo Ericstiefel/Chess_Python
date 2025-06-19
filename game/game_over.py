@@ -10,13 +10,13 @@ from legal_king_moves import is_in_check
 def fifty_move_rule(state: State) -> bool:
     return state.fifty_move == 50
 
-def num_pieces(state: State):
+def num_pieces(state: State) -> int:
         return popcount(state.get_all_occupied_squares())
 
 def check_or_stale_mate(state: State, moves: list[Move]) -> float:
     if not moves:
         if is_in_check(state):
-            return 1 if state.toMove == Color.BLACK else -1  # white wins if black in checkmate
+            return 1 if state.toMove == Color.BLACK else -1
         return 0.5  # stalemate
     return 0
 
@@ -29,7 +29,7 @@ def count_pieces(state: State, color: Color) -> dict[PieceType, int]:
 
 def is_insufficient_material(state: State) -> bool:
     """
-    Checks for insufficient material draw conditions, such as:
+    Checks for insufficient material situations, such as:
     - King vs King
     - King vs King + Knight
     - King vs King + Bishop
@@ -48,14 +48,15 @@ def is_insufficient_material(state: State) -> bool:
     def is_light_square(sq: int) -> bool:
         # A square is light if the sum of its rank and file is even
         return ((sq // 8 + sq % 8) % 2) == 0
+    
+    def heavy_pieces_or_pawns_exist(state: State) -> bool: # Quick check to begin
+        return lsb_index(state.boards[0][PieceType.PAWN] | state.boards[0][PieceType.ROOK] | state.boards[0][PieceType.QUEEN] | state.boards[1][PieceType.PAWN] | state.boards[1][PieceType.ROOK] | state.boards[PieceType.QUEEN]) != -1
+    
+    if heavy_pieces_or_pawns_exist(state):
+        return False 
 
     white_pieces = count_pieces(state, Color.WHITE)
     black_pieces = count_pieces(state, Color.BLACK)
-
-    # Check for pawns, rooks, or queens - if any exist, it's not a draw.
-    if (white_pieces[PieceType.PAWN] > 0 or white_pieces[PieceType.ROOK] > 0 or white_pieces[PieceType.QUEEN] > 0 or
-        black_pieces[PieceType.PAWN] > 0 or black_pieces[PieceType.ROOK] > 0 or black_pieces[PieceType.QUEEN] > 0):
-        return False
 
     # At this point, only kings and minor pieces are left.
     white_knights = white_pieces[PieceType.KNIGHT]
@@ -85,6 +86,4 @@ def is_insufficient_material(state: State) -> bool:
             black_bishop_sq = get_squares_from_bitboard(state.boards[Color.BLACK][PieceType.BISHOP])[0]
             # Return true if both bishops are on the same color of squares
             return is_light_square(white_bishop_sq) == is_light_square(black_bishop_sq)
-
-    # The position has enough material for a potential checkmate (e.g., K+B+N vs K or K+2B vs K)
     return False

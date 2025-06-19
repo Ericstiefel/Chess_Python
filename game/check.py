@@ -2,12 +2,10 @@ from bitboard import State
 from constants import Color, Square
 from utils import *
 from bit_ops import bitScanForward
-import copy
 
 
-def is_in_check(state: State, color: Color) -> int: # Necessary for double checks
-    king_bb = state.boards[color][PieceType.KING]
-    king_square = bitScanForward(king_bb)
+def is_in_check(state: State, color: Color) -> int:
+    king_square = bitScanForward(state.boards[color][PieceType.KING])
 
     return is_square_attacked(state, king_square)
 

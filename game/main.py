@@ -6,10 +6,8 @@ from legal_moves import legal_moves
 import random
 from constants import *
 from move import Move
-import copy
 import time
-from edge_cases import *
-import sys
+from edge_cases import EN_PASSANT
 from bit_ops import *
 
 def get_random_move(moves: list[Move]):

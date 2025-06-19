@@ -3,7 +3,6 @@ from bitboard import State
 from bit_ops import *
 from constants import *
 from utils import is_square_attacked
-import copy
 
 
 def is_in_check(state: State) -> bool:
@@ -63,7 +62,7 @@ def kingMoves(state: State, attacker_ct: int) -> list[Move]:
     for d in deltas:
         to_sq_idx = from_sq_idx + d
         if 0 <= to_sq_idx < 64:
-            file_diff = abs((from_sq_idx % 8) - (to_sq_idx % 8))
+            file_diff = abs((from_sq_idx - to_sq_idx) % 8)
             if file_diff <= 1 and not get_bit(own_occ, to_sq_idx):
                 is_capture = get_bit(opp_occ, to_sq_idx)
                 move = Move(color, PieceType.KING, from_sq, Square(to_sq_idx), is_capture=is_capture)
@@ -71,10 +70,10 @@ def kingMoves(state: State, attacker_ct: int) -> list[Move]:
                 if not is_square_attacked(state, Square(to_sq_idx)):
                     moves.append(Move(color, PieceType.KING, from_sq, Square(to_sq_idx), is_capture=is_capture))
                 state.unmake_move()
+
     if attacker_ct == 0:
-        # Add castling moves
+        # Can't castle out of check
         moves.extend(castleMoves(state))
-    
 
     return moves
 
@@ -82,6 +81,5 @@ def kingMoves(state: State, attacker_ct: int) -> list[Move]:
 if __name__ == '__main__':
     state = State()
 
-
-    move = Move(Color.WHITE, pieceType.PAWN, Square.E2, Square.E4)
+    move = Move(Color.WHITE, PieceType.PAWN, Square.E2, Square.E4)
     state.move_piece(move)

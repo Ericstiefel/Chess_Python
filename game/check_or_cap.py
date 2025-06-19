@@ -15,25 +15,15 @@ def is_capture(state: State, move: Move) -> bool:
     return get_bit(opponent_occupied_bb, move.to_sq.value)
 
 def is_check(state: State, move: Move) -> bool:
-
     state.toMove ^= 1
-
     king_sq = lsb_index(state.boards[state.toMove][PieceType.KING])
-    try:
-        in_check = is_square_attacked(state, Square(king_sq))
-    except ValueError:
-        state.printBoard()
-        for _ in range(8):
-            move, captured_piece, old_castling, old_en_passant, old_fifty = state.moves.pop()
-            print(move.notation())
-        sys.exit(1)
+    in_check = is_square_attacked(state, Square(king_sq))
 
     state.toMove ^= 1
     return in_check
 
 def annotate_moves_with_check_and_capture(state: State, moves: list[Move]):
     
-
     annotated_moves = []
     for move in moves:
         
@@ -45,10 +35,12 @@ def annotate_moves_with_check_and_capture(state: State, moves: list[Move]):
                 state.en_passant()
             else:
                 state.capture(move)
-        elif move.is_castle:
-            state.castle(move)
         elif move.promotion_type != PieceType.PAWN:
             state.promote(move)
+
+        elif move.is_castle:
+            state.castle(move)
+
         else:
             state.move_piece(move)
 

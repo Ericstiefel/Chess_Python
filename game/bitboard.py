@@ -132,9 +132,8 @@ class State:
         old_en_passant = self.en_passant
         old_fifty = self.fifty_move
         self.moves.append((move, None, old_castling, old_en_passant, old_fifty))
-        u_bb = self.boards[self.toMove][move.piece_type]
 
-        self.boards[self.toMove][move.piece_type] = set_bit(clear_bit(u_bb, move.from_sq), move.to_sq)  
+        self.boards[self.toMove][move.piece_type] = set_bit(clear_bit(self.boards[self.toMove][move.piece_type], move.from_sq), move.to_sq)  
     
     def capture(self, move: Move) -> None:
         old_castling = self.castling
