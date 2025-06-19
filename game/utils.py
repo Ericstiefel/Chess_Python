@@ -4,9 +4,6 @@ from bit_ops import *
 from possible_piece_moves import knightMoves, bishopMoves, rookMoves, queenMoves
 
 def is_square_attacked(state: State, target_sq: Square) -> bool:
-    """
-    Returns True if target_sq is attacked by opponent (not necessarily legal move, just attacked).
-    """
 
     def knight_attack_indices(square: int) -> list[int]:
         rank, file = divmod(square, 8)
@@ -37,7 +34,7 @@ def is_square_attacked(state: State, target_sq: Square) -> bool:
         return sliding_attacks(square, occupancy, [(-1, 0), (+1, 0), (0, -1), (0, +1)])
 
     def sliding_attacks(square: int, occupancy: int, directions: list[tuple[int, int]]) -> int:
-        """Generalized sliding attack generator."""
+        # Generalized sliding attack generator
         attacks = 0
         rank, file = divmod(square, 8)
 
@@ -137,7 +134,6 @@ def attackers_to_square(state: State, target_sq: Square) -> int:
         if move.to_sq == target_sq:
             attackers |= (1 << move.from_sq)
 
-    # Reset the turn
     state.toMove = saved_turn
 
     return attackers

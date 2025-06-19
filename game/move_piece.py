@@ -6,15 +6,22 @@ from legal_moves import *
 
 
 def make_move(state: State, move: Move) -> bool:
-
     state.fifty_move += 1
     if move.piece_type == PieceType.PAWN or move.is_capture:
         state.fifty_move = 0
 
+    if move.promotion_type != PieceType.PAWN:
+        pawn_moves = pawnMoves(state)
+
+        if move not in pawn_moves:
+            return False
+
+        state.promote(move)
+        return True
+
     if move.is_castle:
 
         state.castle(move)
-
         state.fifty_move = 0
 
         return True
@@ -24,25 +31,7 @@ def make_move(state: State, move: Move) -> bool:
 
     move.is_capture = get_bit(opp_tot_bb, move.to_sq)
     
-    if move.promotion_type != PieceType.PAWN:
-        pawn_moves = pawnMoves(state)
 
-        if move not in pawn_moves:
-
-            return False
-
-        state.promote(move)
-        return True
-
-    if move.is_en_passant:
-        pawn_moves = pawnMoves(state)
-        if move not in pawn_moves:
-            return False
-
-        state.en_passant(move)
-
-        return True    
-    
     moves = legal_moves(state)
 
     
@@ -50,7 +39,13 @@ def make_move(state: State, move: Move) -> bool:
         return False
     
     if move.is_capture:
-        state.fifty_move = 0
+        if move.is_en_passant:
+            pawn_moves = pawnMoves(state)
+            if move not in pawn_moves:
+                return False
+            state.en_passant(move)
+            return True
+
         state.capture(move)
         return True
     
