@@ -152,7 +152,9 @@ class State:
 
         self.boards[curr_player ^ 1][captured_piece] = clear_bit(self.boards[curr_player ^ 1][captured_piece], move.to_sq)
 
-        self.boards[self.toMove][move.piece_type] = set_bit(self.boards[curr_player][move.piece_type], move.to_sq)
+        self.boards[curr_player][move.piece_type] = set_bit(
+            clear_bit(self.boards[curr_player][move.piece_type], move.from_sq), move.to_sq
+        )
 
     
     def castle(self, move: Move) -> None:
@@ -219,6 +221,8 @@ class State:
         old_en_passant = self.en_passant
         old_fifty = self.fifty_move
         captured_piece = self.piece_on_square(move.to_sq)
+        captured_sq = move.to_sq - 8 if self.toMove == Color.WHITE else move.to_sq + 8
+
     
         self.moves.append((move, captured_piece, old_castling, old_en_passant, old_fifty))
 
