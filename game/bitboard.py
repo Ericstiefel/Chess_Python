@@ -162,12 +162,6 @@ class State:
         old_en_passant = self.en_passant
         old_fifty = self.fifty_move
         captured_piece = None
-        if move.is_capture:
-            if move.is_en_passant:
-                captured_sq = move.to_sq - 8 if move.color == Color.WHITE else move.to_sq + 8
-                captured_piece = self.piece_on_square(captured_sq)
-            else:
-                captured_piece = self.piece_on_square(move.to_sq)
 
         self.moves.append((move, captured_piece, old_castling, old_en_passant, old_fifty))
 
