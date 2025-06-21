@@ -223,11 +223,6 @@ class State:
 
         self.boards[self.toMove][PieceType.PAWN] = set_bit(clear_bit(self.boards[self.toMove][PieceType.PAWN], move.from_sq), move.to_sq)
 
-        if self.toMove == Color.WHITE:
-            captured_sq = move.to_sq - 8
-        else:
-            captured_sq = move.to_sq + 8
-
         self.boards[self.toMove ^ 1][PieceType.PAWN] = clear_bit(self.boards[self.toMove ^ 1][PieceType.PAWN], captured_sq)
 
         self.en_passant = Square.NO_SQUARE
